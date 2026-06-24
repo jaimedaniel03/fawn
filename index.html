@@ -153,6 +153,7 @@
       <h2>Track your order</h2>
       <p>Enter the order code from your confirmation (looks like <code>FAWN-7K3Q</code>).</p>
       <form id="trackForm" class="track-form">
+        <label class="visually-hidden" for="trackInput">Order code</label>
         <input type="text" id="trackInput" placeholder="FAWN-XXXX" autocomplete="off" />
         <button class="btn btn-primary" type="submit">Track</button>
       </form>
@@ -167,6 +168,7 @@
       <p>One email each Friday when new pieces land. No spam, unsubscribe anytime.</p>
       <!-- Point action= at Formspree/Klaviyo/Beehiiv to actually collect these -->
       <form id="emailForm" class="capture-form" action="YOUR_EMAIL_ENDPOINT" method="POST">
+        <label class="visually-hidden" for="emailInput">Email address</label>
         <input type="email" name="email" id="emailInput" placeholder="you@email.com" required />
         <button class="btn btn-primary" type="submit">Notify me</button>
       </form>

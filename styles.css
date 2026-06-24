@@ -27,6 +27,8 @@
 /* the [hidden] attribute must always win, even over display:grid/flex rules
    (e.g. .modal) — otherwise toggling .hidden can't close those elements */
 [hidden]{display:none !important}
+/* Screen-reader-only: present in the accessibility tree, invisible on screen. */
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 html{scroll-behavior:smooth}
 body{
   font-family:var(--sans);
