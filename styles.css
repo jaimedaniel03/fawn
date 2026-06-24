@@ -302,3 +302,14 @@ img{max-width:100%;display:block}
 @media (max-width:480px){
   .foot-cols{grid-template-columns:1fr}
 }
+
+/* Respect users who ask the OS to reduce motion (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
