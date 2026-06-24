@@ -29,6 +29,9 @@
 [hidden]{display:none !important}
 /* Screen-reader-only: present in the accessibility tree, invisible on screen. */
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Keyboard focus: a clear ring for keyboard users, suppressed for mouse/touch. */
+:focus-visible{outline:2px solid var(--rose-deep);outline-offset:2px;border-radius:4px}
+:focus:not(:focus-visible){outline:none}
 html{scroll-behavior:smooth}
 body{
   font-family:var(--sans);
@@ -180,7 +183,7 @@ img{max-width:100%;display:block}
   font-family:var(--sans);font-size:1rem;padding:.85rem 1.1rem;border:1.5px solid var(--line);
   border-radius:999px;min-width:220px;text-transform:uppercase;letter-spacing:.08em;background:var(--blush);
 }
-.track-form input:focus{outline:none;border-color:var(--pink-400)}
+.track-form input:focus{border-color:var(--pink-400)}
 .track-result{margin-top:1.8rem;text-align:left}
 
 /* timeline */
@@ -207,7 +210,7 @@ img{max-width:100%;display:block}
 .capture-inner p{color:var(--ink-soft)}
 .capture-form{display:flex;gap:.6rem;justify-content:center;margin-top:1.3rem;flex-wrap:wrap}
 .capture-form input{font-size:1rem;padding:.85rem 1.1rem;border:1.5px solid var(--line);border-radius:999px;min-width:240px;background:var(--cream)}
-.capture-form input:focus{outline:none;border-color:var(--pink-400)}
+.capture-form input:focus{border-color:var(--pink-400)}
 .capture-note{margin-top:1rem;color:var(--rose-deep);font-weight:600}
 
 /* ---------- footer ---------- */
@@ -257,7 +260,7 @@ img{max-width:100%;display:block}
 .field{display:flex;flex-direction:column;gap:.35rem}
 .field label{font-size:.82rem;font-weight:600;color:var(--ink-soft)}
 .field input,.field textarea{font-family:var(--sans);font-size:1rem;padding:.75rem .9rem;border:1.5px solid var(--line);border-radius:12px;background:var(--cream);resize:vertical}
-.field input:focus,.field textarea:focus{outline:none;border-color:var(--pink-400)}
+.field input:focus,.field textarea:focus{border-color:var(--pink-400)}
 
 .pay-choice{border:none;display:flex;flex-direction:column;gap:.7rem}
 .pay-choice legend{font-size:.82rem;font-weight:600;color:var(--ink-soft);margin-bottom:.4rem}
