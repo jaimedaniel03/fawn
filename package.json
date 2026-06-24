@@ -1,0 +1,13 @@
+{
+  "name": "fawn",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FAWN storefront — static site. Tests drive the real app.js in JSDOM.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}
