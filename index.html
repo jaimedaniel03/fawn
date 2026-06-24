@@ -208,9 +208,9 @@
 
   <!-- Cart drawer -->
   <div class="drawer-overlay" id="overlay" hidden></div>
-  <aside class="drawer" id="cartDrawer" aria-hidden="true">
+  <aside class="drawer" id="cartDrawer" role="dialog" aria-labelledby="cartDrawerTitle" aria-hidden="true">
     <div class="drawer-head">
-      <h3>Your bag</h3>
+      <h3 id="cartDrawerTitle">Your bag</h3>
       <button class="icon-btn" id="closeCart" aria-label="Close cart">✕</button>
     </div>
     <div class="drawer-body" id="cartItems"></div>
@@ -222,7 +222,7 @@
   </aside>
 
   <!-- Checkout modal -->
-  <div class="modal" id="checkoutModal" hidden>
+  <div class="modal" id="checkoutModal" role="dialog" aria-label="Checkout" hidden>
     <div class="modal-card">
       <button class="icon-btn modal-close" id="closeCheckout" aria-label="Close">✕</button>
       <!-- Populated by app.js (checkoutFormHTML → confirmationHTML). -->
