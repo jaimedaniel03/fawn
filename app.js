@@ -122,8 +122,51 @@ function renderCart(){
       </div>`).join('');
 }
 
-function openCart(){ $('#cartDrawer').classList.add('open'); $('#cartDrawer').setAttribute('aria-hidden','false'); $('#overlay').hidden=false; }
-function closeCart(){ $('#cartDrawer').classList.remove('open'); $('#cartDrawer').setAttribute('aria-hidden','true'); $('#overlay').hidden=true; }
+/* Dialog accessibility: trap Tab within an open dialog, close on Escape,
+   and restore focus to the trigger when it closes. */
+let lastFocused = null;
+const FOCUSABLE_SEL = 'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function dialogFocusables(container){ return [...container.querySelectorAll(FOCUSABLE_SEL)].filter(el => el.offsetParent !== null); }
+function openDialog(container, firstFocus){ lastFocused = document.activeElement; (firstFocus || container).focus(); }
+function restoreDialogFocus(){
+  const target = (lastFocused && lastFocused.offsetParent !== null) ? lastFocused : $('#cartBtn');
+  if(target) target.focus();
+  lastFocused = null;
+}
+function activeDialog(){
+  if(!$('#checkoutModal').hidden) return $('#checkoutModal');
+  if($('#cartDrawer').classList.contains('open')) return $('#cartDrawer');
+  return null;
+}
+function onDialogKeydown(e){
+  const dlg = activeDialog();
+  if(!dlg) return;
+  if(e.key === 'Escape'){
+    e.preventDefault();
+    if(dlg.id === 'checkoutModal') closeCheckout(); else closeCart();
+    return;
+  }
+  if(e.key === 'Tab'){
+    const items = dialogFocusables(dlg);
+    if(!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+}
+
+function openCart(){
+  $('#cartDrawer').classList.add('open');
+  $('#cartDrawer').setAttribute('aria-hidden','false');
+  $('#overlay').hidden=false;
+  openDialog($('#cartDrawer'), $('#closeCart'));
+}
+function closeCart(){
+  $('#cartDrawer').classList.remove('open');
+  $('#cartDrawer').setAttribute('aria-hidden','true');
+  $('#overlay').hidden=true;
+  restoreDialogFocus();
+}
 
 /* ----- 6. ORDER CODES & TIMELINE ---------------------------------- */
 const SHIP_STAGES = [
@@ -247,8 +290,12 @@ function openCheckout(){
   $('#checkoutModal').hidden = false;
   $('#checkoutStep').innerHTML = checkoutFormHTML();
   bindCheckoutForm();
+  openDialog($('#checkoutModal'), $('#closeCheckout'));
 }
-function closeCheckout(){ $('#checkoutModal').hidden = true; }
+function closeCheckout(){
+  $('#checkoutModal').hidden = true;
+  restoreDialogFocus();
+}
 
 function checkoutFormHTML(){
   // Re-render fresh form (so it resets each open)
@@ -478,6 +525,7 @@ function init(){
   $('#closeCheckout').addEventListener('click', closeCheckout);
   $('#checkoutModal').addEventListener('click', e=>{ if(e.target.id==='checkoutModal') closeCheckout(); });
   $('#trackForm').addEventListener('submit', handleTrack);
+  document.addEventListener('keydown', onDialogKeydown);
 
   // email capture
   $('#emailForm').addEventListener('submit', e=>{
