@@ -63,6 +63,12 @@ img{max-width:100%;display:block}
 .btn-block{width:100%}
 .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
 
+/* ---------- skip link ---------- */
+.skip-link{position:absolute;left:8px;top:-48px;z-index:100;background:var(--ink);color:#fff;padding:.6rem 1rem;border-radius:0 0 12px 12px;font-weight:600;transition:top .15s ease}
+.skip-link:focus{top:0}
+#main{scroll-margin-top:80px}
+#main:focus{outline:none}
+
 /* ---------- announce ---------- */
 .announce{
   background:var(--ink);color:var(--pink-100);font-size:.78rem;letter-spacing:.04em;
