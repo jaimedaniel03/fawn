@@ -28,19 +28,6 @@ export function bootstrap() {
   }
   try { window.localStorage.clear(); } catch { /* ignore */ }
 
-  // Browsers expose form controls as direct `form.<name>` properties (the
-  // HTMLFormElement named getter); JSDOM does not. app.js reads e.g.
-  // `form.delivery.value` / `form.name.value`, so bridge those names to the
-  // spec-stable `form.elements` API. This lets the REAL, unmodified app.js run
-  // under test — no production code is changed to accommodate the test tool.
-  const formProto = window.HTMLFormElement.prototype;
-  for (const field of ['name', 'email', 'address', 'delivery', 'pay']) {
-    Object.defineProperty(formProto, field, {
-      configurable: true,
-      get() { return this.elements.namedItem(field); },
-    });
-  }
-
   // Run app.js, then fire DOMContentLoaded so init() wires the page up.
   const script = window.document.createElement('script');
   script.textContent = appJs;

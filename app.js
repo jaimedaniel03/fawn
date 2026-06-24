@@ -158,15 +158,15 @@ function createOrder(form){
   const items = cartProducts();
   const now = new Date();
   const code = makeOrderCode();
-  const delivery = form.delivery.value;   // 'pickup' | 'ship'
+  const delivery = form.elements.delivery.value;   // 'pickup' | 'ship'
   const order = {
     code,
     createdAt: now.toISOString(),
-    name: form.name.value.trim(),
-    email: form.email.value.trim(),
-    address: delivery === 'ship' ? form.address.value.trim() : '',
+    name: form.elements.name.value.trim(),
+    email: form.elements.email.value.trim(),
+    address: delivery === 'ship' ? form.elements.address.value.trim() : '',
     delivery,                            // 'pickup' | 'ship'
-    payment: form.pay.value,             // 'paypal' | 'applecash'
+    payment: form.elements.pay.value,    // 'paypal' | 'applecash'
     items: items.map(p=>({id:p.id,title:p.title,price:p.price})),
     subtotal: subtotal(),
     shipping: deliveryFee(delivery),
@@ -311,7 +311,7 @@ function bindCheckoutForm(){
   const paypalRadio = form.querySelector('input[value="paypal"]');
 
   function syncDelivery(){
-    const method = form.delivery.value;
+    const method = form.elements.delivery.value;
     const isShip = method === 'ship';
     // total
     coTotal.textContent = fmt(total(method));
