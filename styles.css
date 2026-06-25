@@ -88,6 +88,12 @@ img{max-width:100%;display:block}
 .nav{display:flex;gap:1.6rem;font-weight:500;font-size:.95rem}
 .nav a{color:var(--ink-soft);transition:color .15s}
 .nav a:hover{color:var(--rose-deep)}
+.header-actions{display:flex;align-items:center;gap:.3rem}
+.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;width:42px;height:42px;background:none;border:none;cursor:pointer;padding:0}
+.nav-toggle span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;margin:0 auto;transition:transform .2s ease,opacity .2s ease}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .cart-btn{position:relative;background:none;border:none;color:var(--ink);cursor:pointer;padding:.3rem}
 .cart-count{
   position:absolute;top:-4px;right:-6px;background:var(--rose);color:#fff;
@@ -303,7 +309,17 @@ img{max-width:100%;display:block}
   .hero-art{display:none}
   .pledge-inner{grid-template-columns:1fr}
   .foot-cols{grid-template-columns:1fr 1fr}
-  .nav{display:none}
+  .nav-toggle{display:flex}
+  .nav{
+    position:absolute;top:100%;left:0;right:0;
+    flex-direction:column;gap:0;
+    background:var(--cream);border-bottom:1px solid var(--line);
+    box-shadow:var(--shadow-sm);padding:.4rem clamp(1rem,4vw,3rem) 1rem;
+    display:none;
+  }
+  .nav.open{display:flex}
+  .nav a{padding:.85rem .2rem;border-bottom:1px solid var(--line);font-size:1.05rem}
+  .nav a:last-child{border-bottom:none}
 }
 @media (max-width:480px){
   .foot-cols{grid-template-columns:1fr}

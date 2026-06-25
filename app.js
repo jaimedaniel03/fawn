@@ -527,6 +527,21 @@ function init(){
   $('#trackForm').addEventListener('submit', handleTrack);
   document.addEventListener('keydown', onDialogKeydown);
 
+  // mobile nav toggle
+  const navToggle = $('#navToggle');
+  const primaryNav = $('#primaryNav');
+  function setNav(open){
+    primaryNav.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+  navToggle.addEventListener('click', () => setNav(!primaryNav.classList.contains('open')));
+  primaryNav.addEventListener('click', e => { if(e.target.tagName === 'A') setNav(false); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && primaryNav.classList.contains('open')) setNav(false); });
+  document.addEventListener('click', e => {
+    if(primaryNav.classList.contains('open') && !e.target.closest('#primaryNav') && !e.target.closest('#navToggle')) setNav(false);
+  });
+
   // email capture
   $('#emailForm').addEventListener('submit', e=>{
     const action = e.target.getAttribute('action');
