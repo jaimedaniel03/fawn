@@ -11,14 +11,14 @@
    shown next to your price (the fair-price pledge).
 ------------------------------------------------------------------- */
 const PRODUCTS = [
-  { id:'t01', title:'Faded baby-tee', meta:'cropped · size S · soft cotton', price:24, resale:34, sold:false, flag:'one of one', img:'', tone:['#f3bcc7','#e89fae'], depop:'' },
-  { id:'t02', title:'Cream ribbed tank', meta:'fitted · size M · ribbed knit', price:19, resale:28, sold:false, flag:'just in', img:'', tone:['#f6e3d6','#d8c3ad'], depop:'' },
-  { id:'t03', title:'Washed rose henley', meta:'relaxed · size L · waffle knit', price:28, resale:42, sold:false, flag:'one of one', img:'', tone:['#e89fae','#d27e90'], depop:'' },
-  { id:'t04', title:'Vintage lace cami', meta:'true vintage · size S · lace trim', price:32, resale:55, sold:false, flag:'rare', img:'', tone:['#fde2e8','#f3bcc7'], depop:'' },
-  { id:'t05', title:'Soft blush cardigan', meta:'oversized · size M/L · merino blend', price:38, resale:60, sold:true, flag:'one of one', img:'', tone:['#f9d9df','#e89fae'], depop:'' },
-  { id:'t06', title:'Sun-faded band tee', meta:'boxy · size M · 100% cotton', price:26, resale:40, sold:false, flag:'one of one', img:'', tone:['#d8c3ad','#b89a7c'], depop:'' },
-  { id:'t07', title:'Pointelle knit top', meta:'fitted · size S · stretch cotton', price:22, resale:33, sold:false, flag:'just in', img:'', tone:['#fdeef0','#f3bcc7'], depop:'' },
-  { id:'t08', title:'Slip-stitch shell top', meta:'sleeveless · size M · silky', price:21, resale:30, sold:false, flag:'one of one', img:'', tone:['#f3bcc7','#d27e90'], depop:'' },
+  { id:'t01', title:'Broken-in baby tee', meta:'cropped · S · buttery cotton', price:24, resale:34, sold:false, flag:'one of one', img:'', tone:['#f3bcc7','#e89fae'], depop:'' },
+  { id:'t02', title:'Ribbed coquette tank', meta:'fitted · M · second-skin rib', price:19, resale:28, sold:false, flag:'just in', img:'', tone:['#f6e3d6','#d8c3ad'], depop:'' },
+  { id:'t03', title:'Washed waffle henley', meta:'relaxed · L · waffle knit', price:28, resale:42, sold:false, flag:'one of one', img:'', tone:['#e89fae','#d27e90'], depop:'' },
+  { id:'t04', title:'Lace-trim slip cami', meta:'true vintage · S · lace trim', price:32, resale:55, sold:false, flag:'rare', img:'', tone:['#fde2e8','#f3bcc7'], depop:'' },
+  { id:'t05', title:'Slouchy blush cardi', meta:'oversized · M/L · merino blend', price:38, resale:60, sold:true, flag:'one of one', img:'', tone:['#f9d9df','#e89fae'], depop:'' },
+  { id:'t06', title:'Sun-faded band tee', meta:'boxy · M · 100% cotton', price:26, resale:40, sold:false, flag:'one of one', img:'', tone:['#d8c3ad','#b89a7c'], depop:'' },
+  { id:'t07', title:'Pointelle baby top', meta:'fitted · S · stretch pointelle', price:22, resale:33, sold:false, flag:'just in', img:'', tone:['#fdeef0','#f3bcc7'], depop:'' },
+  { id:'t08', title:'Silky shell cami', meta:'sleeveless · M · slip-silky', price:21, resale:30, sold:false, flag:'one of one', img:'', tone:['#f3bcc7','#d27e90'], depop:'' },
 ];
 
 /* ----- 2. SELLER / PAYMENT DETAILS -------------------------------- */
