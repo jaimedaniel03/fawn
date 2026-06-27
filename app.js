@@ -500,10 +500,51 @@ function refreshTrackIfShowing(code){
   }
 }
 
+/* ----- 9b. LIVE PRODUCTS (Supabase) ------------------------------- *
+   If a Supabase client is configured (browser only — not in tests), replace
+   the demo PRODUCTS with Jessica's real, uploaded inventory. Falls back to the
+   built-in demo items if Supabase isn't configured or the fetch fails. */
+function rowToProduct(r){
+  const meta = r.blurb || [r.size, r.condition].filter(Boolean).join(' · ');
+  return {
+    id: r.id, title: r.title, meta,
+    price: Number(r.price) || 0, resale: Number(r.resale) || 0,
+    sold: !!r.sold, flag: r.flag || '', img: r.image_url || '',
+    depop: r.depop || '', tone: ['#f3bcc7', '#e89fae'],
+  };
+}
+async function loadProducts(){
+  const c = window.fawnClient;
+  if(!c) return; // tests / unconfigured → keep demo PRODUCTS
+  const grid = $('#productGrid');
+  if(grid) grid.innerHTML = '<p class="grid-empty">loading the closet…</p>';
+  try{
+    const { data, error } = await c
+      .from('products').select('*')
+      .order('sold', { ascending: true })
+      .order('sort', { ascending: true })
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    PRODUCTS.length = 0;
+    (data || []).forEach(r => PRODUCTS.push(rowToProduct(r)));
+    if(PRODUCTS.length === 0){
+      if(grid) grid.innerHTML = '<p class="grid-empty">new little finds coming soon 🌿</p>';
+      renderCart();
+      return;
+    }
+    renderProducts();
+    renderCart();
+  }catch(e){
+    console.warn('Live products unavailable, showing demo:', e.message);
+    renderProducts(); // restore demo render
+  }
+}
+
 /* ----- 10. WIRE UP ------------------------------------------------- */
 function init(){
   renderProducts();
   renderCart();
+  loadProducts();
   $('#year').textContent = '2026';
 
   // delegated clicks for add/remove + depop tracking

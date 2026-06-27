@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAWN — owner dashboard</title>
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data: https:;
+    connect-src 'self' https://zutihcvdczoumrydrdmw.supabase.co;
+    form-action 'self';
+  " />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin{max-width:780px;margin:0 auto;padding:clamp(1.2rem,4vw,2.4rem) clamp(1rem,4vw,1.5rem) 4rem}
+    .admin-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.6rem}
+    .admin-top .brand-word{font-size:1.6rem}
+    .admin-top .hand{font-family:var(--hand);color:var(--rose);font-size:1.1rem}
+    .panel{background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:clamp(1.2rem,3vw,1.8rem);margin-bottom:1.2rem}
+    .panel h2{font-size:1.4rem;margin-bottom:.3rem}
+    .panel .muted{color:var(--ink-soft);font-size:.9rem;margin-bottom:1rem}
+    .field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem}
+    .field label{font-size:.75rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+    .field input,.field select{font-family:var(--sans);font-size:1rem;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;background:var(--blush);color:var(--ink)}
+    .field input:focus,.field select:focus{outline:none;border-color:var(--rose)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+    .checkrow{display:flex;align-items:center;gap:.5rem;margin:.4rem 0 1rem}
+    .checkrow input{width:18px;height:18px;accent-color:var(--rose)}
+    .msg{font-size:.9rem;padding:.7rem .9rem;border-radius:10px;margin-top:.6rem}
+    .msg.ok{background:#e4f3ea;color:#2c7146}
+    .msg.err{background:#fbe7e2;color:#a8341f}
+    .msg.info{background:var(--pink-100);color:var(--rose-deep)}
+    .link-btn{background:none;border:none;color:var(--rose-deep);text-decoration:underline;font-size:.92rem;cursor:pointer;padding:0}
+    .items{display:flex;flex-direction:column;gap:.7rem}
+    .item{display:flex;gap:.9rem;align-items:center;padding:.7rem;border:1px solid var(--line);border-radius:14px;background:var(--blush)}
+    .item-thumb{width:56px;height:70px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--fawn)}
+    .item-ph{width:56px;height:70px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;background:linear-gradient(150deg,var(--pink-200),var(--fawn));color:#fff;font-family:var(--serif);font-size:.7rem}
+    .item-info{flex:1;min-width:0}
+    .item-info h4{font-family:var(--serif);font-size:1.02rem;font-weight:500}
+    .item-info .meta{font-size:.8rem;color:var(--ink-soft)}
+    .item-info .price{color:var(--rose-deep);font-weight:600;font-size:.9rem}
+    .item-actions{display:flex;flex-direction:column;gap:.35rem;align-items:flex-end}
+    .pill{font-size:.7rem;border:1px solid var(--line);background:var(--cream);border-radius:999px;padding:.25rem .6rem;cursor:pointer;color:var(--ink-soft)}
+    .pill.sold{background:#fbead0;color:#855a0f;border-color:#f0d6a8}
+    .pill.del{color:#a8341f}
+    .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--pink-200);border-top-color:var(--rose);border-radius:50%;animation:adminspin .7s linear infinite;vertical-align:-3px;margin-right:.4rem}
+    @keyframes adminspin{to{transform:rotate(360deg)}}
+    @media (max-width:480px){.row2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="admin">
+    <div class="admin-top">
+      <div>
+        <span class="brand-word">fawn</span>
+        <span class="hand">owner dashboard 🦌</span>
+      </div>
+      <button class="btn btn-ghost" id="signOutBtn" hidden>sign out</button>
+    </div>
+
+    <!-- Login -->
+    <section class="panel" id="authView" hidden>
+      <h2 id="authTitle">welcome back, jess</h2>
+      <p class="muted" id="authSub">sign in to manage your shop.</p>
+      <form id="authForm">
+        <div class="field"><label>email</label><input type="email" id="email" autocomplete="username" value="jessicapotterrr@gmail.com" required /></div>
+        <div class="field"><label>password</label><input type="password" id="password" autocomplete="current-password" required /></div>
+        <button class="btn btn-primary btn-block" type="submit" id="authBtn">sign in</button>
+      </form>
+      <div id="authMsg"></div>
+      <p style="margin-top:1rem;font-size:.9rem;color:var(--ink-soft)">
+        <span id="toggleHint">first time?</span>
+        <button class="link-btn" id="toggleMode">create your account</button>
+      </p>
+    </section>
+
+    <!-- Not the owner -->
+    <section class="panel" id="notOwnerView" hidden>
+      <h2>hmm…</h2>
+      <p class="muted">you're signed in as <strong id="whoEmail"></strong>, but only the shop owner can manage items.</p>
+    </section>
+
+    <!-- Dashboard -->
+    <div id="dashView" hidden>
+      <section class="panel">
+        <h2>add an item</h2>
+        <p class="muted">a few details + a photo. it goes live instantly.</p>
+        <form id="itemForm">
+          <div class="field"><label>title</label><input id="iTitle" placeholder="washed waffle henley" required /></div>
+          <div class="row2">
+            <div class="field"><label>size</label><input id="iSize" placeholder="M" /></div>
+            <div class="field"><label>condition</label><input id="iCondition" placeholder="like new" /></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>your price ($)</label><input id="iPrice" type="number" min="0" step="1" placeholder="24" required /></div>
+            <div class="field"><label>usual resale ($)</label><input id="iResale" type="number" min="0" step="1" placeholder="34" /></div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>tag</label>
+              <select id="iFlag"><option value="one of one">one of one</option><option value="just in">just in</option><option value="rare">rare</option><option value="">none</option></select>
+            </div>
+            <div class="field"><label>photo</label><input id="iPhoto" type="file" accept="image/*" /></div>
+          </div>
+          <div class="checkrow"><input type="checkbox" id="iSold" /><label for="iSold" style="text-transform:none;font-weight:500;color:var(--ink)">mark as sold</label></div>
+          <button class="btn btn-primary btn-block" type="submit" id="saveBtn">add to shop ✨</button>
+        </form>
+        <div id="itemMsg"></div>
+      </section>
+
+      <section class="panel">
+        <h2>your items <span id="itemCount" class="muted" style="font-size:.9rem"></span></h2>
+        <div class="items" id="itemList"><p class="muted">loading…</p></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="vendor/supabase.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

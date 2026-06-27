@@ -163,6 +163,7 @@ section[id]{scroll-margin-top:84px}
 /* ---------- shop grid ---------- */
 .shop{padding:clamp(2rem,5vw,3.5rem) clamp(1rem,4vw,3rem);max-width:1200px;margin:0 auto}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:clamp(1rem,2.4vw,1.8rem)}
+.grid-empty{grid-column:1/-1;text-align:center;color:var(--ink-soft);font-family:var(--hand);font-size:1.6rem;padding:2.5rem 1rem}
 .card{
   background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden;transition:transform .2s ease, box-shadow .2s ease;display:flex;flex-direction:column;
