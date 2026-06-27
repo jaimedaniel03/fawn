@@ -554,7 +554,24 @@ function init(){
     // if a real endpoint is set, let the form submit normally
   });
 
+  setupReveal();
+
   // deep link: #track?CODE  or visiting with a stored last code
   if(location.hash.startsWith('#track')){ /* user can type code */ }
 }
+
+/* Gentle scroll-reveal. Guarded by IntersectionObserver so it no-ops in
+   non-browser test environments — and the `.reveal-ready` flag means content
+   stays visible if JS/IO is unavailable. */
+function setupReveal(){
+  if(!('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('reveal-ready');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}
+
 document.addEventListener('DOMContentLoaded', init);

@@ -3,26 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FAWN — curated vintage & thrifted tops</title>
-  <meta name="description" content="FAWN — hand-picked, gently-loved tops. Honest prices, real protection, real tracking. Each piece one of one." />
-
-  <!-- Content-Security-Policy: limits what can run/load, which is the main
-       in-page defense against injected scripts (XSS) and data exfiltration.
-       Note: enabling the Meta Pixel means adding connect.facebook.net to
-       script-src/img-src/connect-src. A different email provider than
-       Formspree needs adding to connect-src/form-action. -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    base-uri 'self';
-    object-src 'none';
-    script-src 'self';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;
-    img-src 'self' data: https:;
-    connect-src 'self' https://formspree.io;
-    form-action 'self' https://formspree.io;
-  " />
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>FAWN — Jessica's little closet</title>
+  <meta name="description" content="FAWN — a tiny closet of gently-loved, one-of-one tops, hand-picked by Jessica." />
 
   <!-- ============================================================
        META PIXEL (optional) — paste your Pixel ID where shown, then
@@ -40,38 +22,54 @@
   </script>
   -->
 
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data: https:;
+    connect-src 'self' https://formspree.io;
+    form-action 'self' https://formspree.io;
+  " />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Announcement bar -->
   <div class="announce">
-    <span>Meet up in person · or $6 local shipping · Every piece is one of one</span>
+    <span>🦌 one of one, always · meet up or $6 local shipping</span>
   </div>
 
-  <!-- Header -->
   <header class="site-header" id="top">
     <a href="#top" class="brand" aria-label="FAWN home">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
-          <path d="M20 6c3 4 3 8 0 12-3-4-3-8 0-12z" fill="currentColor" opacity=".55"/>
-          <path d="M20 14c4 2 6 6 6 11a6 6 0 0 1-12 0c0-5 2-9 6-11z" fill="currentColor"/>
-          <circle cx="16.5" cy="24" r="1.3" fill="#fff"/>
-          <circle cx="23.5" cy="24" r="1.3" fill="#fff"/>
+        <svg viewBox="0 0 40 44" width="30" height="33" fill="none">
+          <path d="M11 13q-7-2-9-9 7 0 12 6z" fill="currentColor" opacity=".5"/>
+          <path d="M29 13q7-2 9-9-7 0-12 6z" fill="currentColor" opacity=".5"/>
+          <path d="M20 9c8 0 13 6 13 14 0 10-6 17-13 17S7 33 7 23C7 15 12 9 20 9z" fill="currentColor"/>
+          <circle cx="15.5" cy="22" r="1.7" fill="#fff"/>
+          <circle cx="24.5" cy="22" r="1.7" fill="#fff"/>
+          <path d="M20 27c1.6 0 2.4 1.6 0 3-2.4-1.4-1.6-3 0-3z" fill="#fff" opacity=".85"/>
         </svg>
       </span>
-      <span class="brand-word">fawn</span>
+      <span class="brand-text">
+        <span class="brand-word">fawn</span>
+        <span class="brand-by">by jessica</span>
+      </span>
     </a>
     <nav class="nav" id="primaryNav" aria-label="Primary">
-      <a href="#shop">Shop</a>
-      <a href="#pledge">Fair price</a>
-      <a href="#track">Track order</a>
-      <a href="terms.html">Policies</a>
+      <a href="#shop">shop</a>
+      <a href="#pledge">the pledge</a>
+      <a href="#track">track</a>
+      <a href="terms.html">hello</a>
     </nav>
     <div class="header-actions">
       <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="primaryNav">
@@ -90,79 +88,111 @@
   <!-- Hero -->
   <section class="hero" id="main" tabindex="-1">
     <div class="hero-inner">
-      <p class="eyebrow">gently-loved · hand-picked · one of one</p>
-      <h1>Soft finds, <em>honest</em> prices.</h1>
-      <p class="hero-sub">FAWN is a tiny vintage closet. Each top is sourced, washed, photographed on a real body, and priced with the resale number shown right next to it — so you always know you're getting a fair deal.</p>
+      <p class="eyebrow hand">hi, i'm jessica 🤎</p>
+      <h1>soft little <em>finds</em>.</h1>
+      <p class="hero-sub">gently-loved · one of one</p>
       <div class="hero-cta">
-        <a href="#shop" class="btn btn-primary">Shop the drop</a>
-        <a href="#pledge" class="btn btn-ghost">Our fair-price pledge</a>
+        <a href="#shop" class="btn btn-primary">shop the drop</a>
+        <a href="#pledge" class="btn btn-ghost">the pledge</a>
       </div>
       <ul class="hero-trust">
-        <li>✓ Buyer protection on PayPal</li>
-        <li>✓ Meet up or $6 local shipping</li>
-        <li>✓ Live order timeline</li>
+        <li>✓ buyer-protected</li>
+        <li>✓ tracked</li>
+        <li>✓ one of one</li>
       </ul>
     </div>
+
     <div class="hero-art" aria-hidden="true">
-      <div class="tag-float tag-float--1">
-        <span class="tag-eyelet"></span>
-        <strong>fawn</strong>
-        <small>est. 2026</small>
-      </div>
-      <div class="tag-float tag-float--2">
-        <span class="tag-eyelet"></span>
-        <strong>one of one</strong>
-        <small>washed & ready</small>
+      <span class="spot spot--1"></span>
+      <span class="spot spot--2"></span>
+      <span class="spot spot--3"></span>
+      <span class="spot spot--4"></span>
+      <div class="fawn-stage">
+        <svg class="fawn-illo" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A little fawn">
+          <g class="fawn-antlers" stroke="var(--fawn-deep)" stroke-width="6" stroke-linecap="round">
+            <path d="M97 72 q-7 -20 -2 -33"/>
+            <path d="M143 72 q7 -20 2 -33"/>
+          </g>
+          <circle cx="93" cy="38" r="5.5" fill="var(--fawn-deep)"/>
+          <circle cx="147" cy="38" r="5.5" fill="var(--fawn-deep)"/>
+          <g class="fawn-ears">
+            <path d="M72 94 q-36 -6 -46 -40 q36 -2 54 27 z" fill="var(--fawn)"/>
+            <path d="M168 94 q36 -6 46 -40 q-36 -2 -54 27 z" fill="var(--fawn)"/>
+            <path d="M68 88 q-23 -7 -31 -26 q21 0 35 19 z" fill="#eac7c2"/>
+            <path d="M172 88 q23 -7 31 -26 q-21 0 -35 19 z" fill="#eac7c2"/>
+          </g>
+          <path d="M120 60c40 0 64 26 64 64 0 44-30 80-64 80s-64-36-64-80c0-38 24-64 64-64z" fill="var(--fawn)"/>
+          <ellipse cx="120" cy="162" rx="35" ry="29" fill="#eedcc1"/>
+          <circle cx="82" cy="148" r="13" fill="#e79e9b" opacity=".5"/>
+          <circle cx="158" cy="148" r="13" fill="#e79e9b" opacity=".5"/>
+          <g class="fawn-eyes" fill="var(--ink)">
+            <ellipse cx="96" cy="122" rx="9" ry="12"/>
+            <ellipse cx="144" cy="122" rx="9" ry="12"/>
+          </g>
+          <circle cx="99" cy="117" r="3" fill="#fff"/>
+          <circle cx="147" cy="117" r="3" fill="#fff"/>
+          <path d="M120 152c8 0 12 5 12 9 0 6-7 10-12 14-5-4-12-8-12-14 0-4 4-9 12-9z" fill="var(--rose)"/>
+          <g fill="#fffdf6" opacity=".85">
+            <circle cx="120" cy="88" r="4.5"/>
+            <circle cx="100" cy="100" r="3.2"/>
+            <circle cx="140" cy="100" r="3.2"/>
+            <circle cx="86" cy="114" r="2.6"/>
+            <circle cx="154" cy="114" r="2.6"/>
+          </g>
+        </svg>
+        <div class="tag-float">
+          <span class="tag-eyelet"></span>
+          <strong>one of one</strong>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Shop -->
   <section class="shop" id="shop">
-    <div class="section-head">
-      <h2>This week's drop</h2>
-      <p>New pieces every Friday. When it's gone, it's gone — there's only ever one of each.</p>
+    <div class="section-head reveal">
+      <h2>this week 🌿</h2>
+      <p>new every friday. when it's gone, it's gone.</p>
     </div>
-    <div class="grid" id="productGrid"><!-- products injected by app.js --></div>
+    <div class="grid reveal" id="productGrid"><!-- products injected by app.js --></div>
   </section>
 
-  <!-- Fair price pledge -->
+  <!-- Fair-price pledge -->
   <section class="pledge" id="pledge">
-    <div class="pledge-inner">
-      <h2>The fair-price pledge</h2>
-      <p>Reselling only feels good when it's honest. So on every tag we show the <strong>typical resale price</strong> for a piece like it, right beside <strong>what we're charging</strong>. No inflated "vintage tax." If we found a deal, you get part of it too.</p>
+    <div class="pledge-inner reveal">
+      <div class="pledge-copy">
+        <h2>honest prices.</h2>
+        <p>i show the usual resale price right next to mine. that's the whole thing.</p>
+        <p class="hand sign">— jess 🤎</p>
+      </div>
       <div class="pledge-tag">
         <span class="tag-eyelet"></span>
-        <div class="pledge-row"><span>Typical resale</span><s>$34</s></div>
-        <div class="pledge-row big"><span>Your FAWN price</span><b>$24</b></div>
-        <p class="pledge-save">you save $10 — and you can see exactly why</p>
+        <div class="pledge-row"><span>usual resale</span><s>$34</s></div>
+        <div class="pledge-row big"><span>your price</span><b>$24</b></div>
+        <p class="pledge-save">you save $10</p>
       </div>
     </div>
   </section>
 
   <!-- How it works -->
-  <section class="how">
-    <div class="section-head">
-      <h2>How a FAWN order works</h2>
-      <p>Honest, protected, and trackable from "add to cart" to "delivered."</p>
-    </div>
+  <section class="how reveal">
     <ol class="steps">
-      <li><span class="step-n">1</span><h3>Pick your piece</h3><p>Add to cart. Each item is one of one, so checkout reserves it for you.</p></li>
-      <li><span class="step-n">2</span><h3>Pay protected</h3><p>Pay by PayPal <em>Goods &amp; Services</em> — covered by buyer protection. Apple Cash is offered for in-person pickup only.</p></li>
-      <li><span class="step-n">3</span><h3>Meet up or ship</h3><p>Meet in person for free, or get it shipped locally for <strong>$6</strong> — packed within 2 business days.</p></li>
-      <li><span class="step-n">4</span><h3>Track every step</h3><p>Use your order code on the <a href="#track">Track order</a> page to watch it from packed to in-your-hands.</p></li>
+      <li><span class="step-ic">🛍️</span><h3>pick</h3></li>
+      <li><span class="step-ic">🔒</span><h3>pay safe</h3></li>
+      <li><span class="step-ic">🤝</span><h3>meet or ship</h3></li>
+      <li><span class="step-ic">📍</span><h3>track it home</h3></li>
     </ol>
   </section>
 
   <!-- Track order -->
   <section class="track" id="track">
-    <div class="track-inner">
-      <h2>Track your order</h2>
-      <p>Enter the order code from your confirmation (looks like <code>FAWN-7K3Q</code>).</p>
+    <div class="track-inner reveal">
+      <h2>track your order</h2>
+      <p>got a code? (looks like <code>FAWN-7K3Q</code>)</p>
       <form id="trackForm" class="track-form">
         <label class="visually-hidden" for="trackInput">Order code</label>
         <input type="text" id="trackInput" placeholder="FAWN-XXXX" autocomplete="off" />
-        <button class="btn btn-primary" type="submit">Track</button>
+        <button class="btn btn-primary" type="submit">track</button>
       </form>
       <div id="trackResult" class="track-result" hidden></div>
     </div>
@@ -170,59 +200,45 @@
 
   <!-- Email capture -->
   <section class="capture">
-    <div class="capture-inner">
-      <h2>Get first dibs on the next drop</h2>
-      <p>One email each Friday when new pieces land. No spam, unsubscribe anytime.</p>
-      <!-- Point action= at Formspree/Klaviyo/Beehiiv to actually collect these -->
+    <div class="capture-inner reveal">
+      <h2>first dibs 🦌</h2>
+      <p>one little note each friday.</p>
       <form id="emailForm" class="capture-form" action="YOUR_EMAIL_ENDPOINT" method="POST">
         <label class="visually-hidden" for="emailInput">Email address</label>
         <input type="email" name="email" id="emailInput" placeholder="you@email.com" required />
-        <button class="btn btn-primary" type="submit">Notify me</button>
+        <button class="btn btn-primary" type="submit">notify me</button>
       </form>
-      <p class="capture-note" id="emailNote" hidden>You're on the list 💌</p>
+      <p class="capture-note" id="emailNote" hidden>you're on the list 💌</p>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="site-footer">
-    <div class="foot-cols">
-      <div>
-        <span class="brand-word">fawn</span>
-        <p>Curated vintage & thrifted tops. One of one, always.</p>
-      </div>
-      <div>
-        <h4>Shop</h4>
-        <a href="#shop">This week's drop</a>
-        <a href="#pledge">Fair-price pledge</a>
-        <a href="#track">Track an order</a>
-      </div>
-      <div>
-        <h4>Help</h4>
-        <a href="terms.html">Terms of Service</a>
-        <a href="terms.html#shipping">Shipping & returns</a>
-        <a href="terms.html#privacy">Privacy</a>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <a href="mailto:jessicapotterrr@gmail.com">jessicapotterrr@gmail.com</a>
-        <p class="foot-small">Replies within 24h, Mon–Sat</p>
-      </div>
+    <div class="foot-mark">
+      <span class="brand-word">fawn</span>
+      <p class="hand">jessica's little closet 🤎</p>
     </div>
-    <p class="copyright">© <span id="year"></span> FAWN. All pieces sold as-is, described honestly. Made with care.</p>
+    <div class="foot-links">
+      <a href="#shop">shop</a>
+      <a href="#track">track</a>
+      <a href="terms.html">policies</a>
+      <a href="mailto:jessicapotterrr@gmail.com">say hi</a>
+    </div>
+    <p class="copyright">© <span id="year"></span> fawn · made with care by jessica</p>
   </footer>
 
   <!-- Cart drawer -->
   <div class="drawer-overlay" id="overlay" hidden></div>
   <aside class="drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle" aria-hidden="true">
     <div class="drawer-head">
-      <h3 id="cartDrawerTitle">Your bag</h3>
+      <h3 id="cartDrawerTitle">your bag</h3>
       <button class="icon-btn" id="closeCart" aria-label="Close cart">✕</button>
     </div>
     <div class="drawer-body" id="cartItems"></div>
     <div class="drawer-foot">
-      <div class="drawer-total"><span>Subtotal</span><strong id="cartTotal">$0</strong></div>
-      <p class="drawer-ship">Choose meet-up (free) or $6 local shipping at checkout</p>
-      <button class="btn btn-primary btn-block" id="checkoutBtn" disabled>Checkout</button>
+      <div class="drawer-total"><span>subtotal</span><strong id="cartTotal">$0</strong></div>
+      <p class="drawer-ship">meet-up (free) or $6 local shipping at checkout</p>
+      <button class="btn btn-primary btn-block" id="checkoutBtn" disabled>checkout</button>
     </div>
   </aside>
 
