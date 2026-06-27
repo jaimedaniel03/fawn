@@ -174,7 +174,7 @@ function itemRow(r) {
     </div>
     <div class="item-actions">
       <button class="pill ${r.sold ? "sold" : ""}" data-sold="${r.id}" data-cur="${r.sold ? 1 : 0}">${r.sold ? "sold ✓" : "mark sold"}</button>
-      <button class="pill del" data-del="${r.id}">delete</button>
+      <button class="pill del" data-del="${r.id}" data-img="${esc(r.image_url || '')}">delete</button>
     </div>
   </div>`;
 }
@@ -192,6 +192,13 @@ $("#itemList").addEventListener("click", async (e) => {
   }
   if (delBtn) {
     if (!confirm("Delete this item for good?")) return;
+    // also remove the photo from storage so it doesn't orphan + fill the bucket
+    const img = delBtn.dataset.img || "";
+    const marker = `/${cfg.bucket}/`;
+    const at = img.indexOf(marker);
+    if (at !== -1) {
+      try { await c.storage.from(cfg.bucket).remove([img.slice(at + marker.length)]); } catch (_) {}
+    }
     const { error } = await c.from("products").delete().eq("id", delBtn.dataset.del);
     if (error) alert(error.message);
     loadItems();

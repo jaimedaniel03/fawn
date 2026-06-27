@@ -1,0 +1,41 @@
+name: weekly-backup
+# Dumps the public schema (your products) weekly and stores it as a downloadable
+# artifact. Only the `public` schema is dumped, so auth data (emails, password
+# hashes) is never included.
+#
+# ⚠️ REQUIRES one secret you add yourself:
+#   GitHub repo → Settings → Secrets and variables → Actions → New secret
+#   Name:  SUPABASE_DB_URL
+#   Value: the "Connection string" (URI) from Supabase →
+#          Project Settings → Database → Connection string (use the pooler/Session URI,
+#          and put your DB password in it). Without this secret the job will fail.
+on:
+  schedule:
+    - cron: '0 8 * * 0'      # Sundays 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install postgresql-client 17 (matches Supabase)
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: dump public schema
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "SUPABASE_DB_URL secret not set — see this file's header."; exit 1; fi
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --schema=public --no-owner --no-privileges \
+            -f "fawn-backup-$(date +%F).sql"
+          echo "dump size: $(wc -c < fawn-backup-*.sql) bytes"
+      - name: upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fawn-backup-${{ github.run_id }}
+          path: fawn-backup-*.sql
+          retention-days: 90
