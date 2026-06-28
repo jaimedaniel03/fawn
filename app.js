@@ -80,6 +80,7 @@ function renderProducts(){
           : inCart
             ? `<button class="btn btn-ghost" data-remove="${p.id}">In bag ✓ — remove</button>`
             : `<button class="btn btn-primary" data-add="${p.id}">Add to bag</button>`}
+        ${p.payLink && !p.sold ? `<a class="btn btn-ghost card-buy" href="${esc(p.payLink)}" target="_blank" rel="noopener">buy now ↗</a>` : ''}
         ${p.depop && !p.sold ? `<a class="card-meta" href="${p.depop}" target="_blank" rel="noopener" data-depop style="text-align:center;text-decoration:underline;color:var(--rose-deep)">View on Depop ↗</a>` : ''}
       </div>
     </article>`;
@@ -382,8 +383,20 @@ function bindCheckoutForm(){
     e.preventDefault();
     const order = createOrder(form);
     sendOrderNotification(order); // best-effort email to seller (see config)
+    saveOrderToCloud(order);      // record it in Jessica's dashboard (Supabase)
     $('#checkoutStep').innerHTML = confirmationHTML(order);
   });
+}
+
+/* Record the order in Supabase so it shows up in Jessica's dashboard.
+   Guarded + fire-and-forget so it never blocks checkout (and is skipped in tests). */
+function saveOrderToCloud(order){
+  if(!window.fawnClient) return;
+  window.fawnClient.from('orders').insert({
+    code: order.code, name: order.name, email: order.email, address: order.address,
+    delivery: order.delivery, payment: order.payment, items: order.items,
+    subtotal: order.subtotal, shipping: order.shipping, total: order.total,
+  }).then(() => {}, (e) => console.warn('order cloud-save failed:', e?.message));
 }
 
 function confirmationHTML(order){
@@ -505,12 +518,12 @@ function refreshTrackIfShowing(code){
    the demo PRODUCTS with Jessica's real, uploaded inventory. Falls back to the
    built-in demo items if Supabase isn't configured or the fetch fails. */
 function rowToProduct(r){
-  const meta = r.blurb || [r.size, r.condition].filter(Boolean).join(' · ');
+  const meta = r.blurb || [r.brand, r.size, r.condition].filter(Boolean).join(' · ');
   return {
     id: r.id, title: r.title, meta,
     price: Number(r.price) || 0, resale: Number(r.resale) || 0,
     sold: !!r.sold, flag: r.flag || '', img: r.image_url || '',
-    depop: r.depop || '', tone: ['#f3bcc7', '#e89fae'],
+    depop: r.depop || '', payLink: r.pay_link || '', tone: ['#f3bcc7', '#e89fae'],
   };
 }
 async function loadProducts(){
@@ -521,6 +534,7 @@ async function loadProducts(){
   try{
     const { data, error } = await c
       .from('products').select('*')
+      .eq('hidden', false)
       .order('sold', { ascending: true })
       .order('sort', { ascending: true })
       .order('created_at', { ascending: false });
@@ -588,6 +602,10 @@ function init(){
     const action = e.target.getAttribute('action');
     if(!action || action==='YOUR_EMAIL_ENDPOINT'){
       e.preventDefault();
+      const email = $('#emailInput').value.trim();
+      if(email && window.fawnClient){
+        window.fawnClient.from('signups').insert({ email }).then(()=>{}, ()=>{});
+      }
       $('#emailNote').hidden = false;
       $('#emailInput').value = '';
       if(window.fbq) fbq('track','Lead');

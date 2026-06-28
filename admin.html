@@ -30,8 +30,8 @@
     .panel .muted{color:var(--ink-soft);font-size:.9rem;margin-bottom:1rem}
     .field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem}
     .field label{font-size:.75rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
-    .field input,.field select{font-family:var(--sans);font-size:1rem;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;background:var(--blush);color:var(--ink)}
-    .field input:focus,.field select:focus{outline:none;border-color:var(--rose)}
+    .field input,.field select,.field textarea{font-family:var(--sans);font-size:1rem;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;background:var(--blush);color:var(--ink);resize:vertical}
+    .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--rose)}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
     .checkrow{display:flex;align-items:center;gap:.5rem;margin:.4rem 0 1rem}
     .checkrow input{width:18px;height:18px;accent-color:var(--rose)}
@@ -105,13 +105,20 @@
             <div class="field"><label>usual resale ($)</label><input id="iResale" type="number" min="0" step="1" placeholder="34" /></div>
           </div>
           <div class="row2">
+            <div class="field"><label>brand</label><input id="iBrand" placeholder="vintage / no brand" /></div>
+            <div class="field"><label>category</label><input id="iCategory" placeholder="tops" /></div>
+          </div>
+          <div class="row2">
             <div class="field">
               <label>tag</label>
               <select id="iFlag"><option value="one of one">one of one</option><option value="just in">just in</option><option value="rare">rare</option><option value="">none</option></select>
             </div>
             <div class="field"><label>photo</label><input id="iPhoto" type="file" accept="image/*" /></div>
           </div>
+          <div class="field"><label>note (optional)</label><textarea id="iDesc" rows="2" placeholder="a little note about the piece"></textarea></div>
+          <div class="field"><label>buy-now link (optional · paste a Stripe Payment Link)</label><input id="iPayLink" type="url" placeholder="https://buy.stripe.com/..." /></div>
           <div class="checkrow"><input type="checkbox" id="iSold" /><label for="iSold" style="text-transform:none;font-weight:500;color:var(--ink)">mark as sold</label></div>
+          <div class="checkrow"><input type="checkbox" id="iHidden" /><label for="iHidden" style="text-transform:none;font-weight:500;color:var(--ink)">hide (draft — not shown in shop)</label></div>
           <button class="btn btn-primary btn-block" type="submit" id="saveBtn">add to shop ✨</button>
         </form>
         <div id="itemMsg"></div>
@@ -120,6 +127,17 @@
       <section class="panel">
         <h2>your items <span id="itemCount" class="muted" style="font-size:.9rem"></span></h2>
         <div class="items" id="itemList"><p class="muted">loading…</p></div>
+      </section>
+
+      <section class="panel">
+        <h2>orders <span id="orderCount" class="muted" style="font-size:.9rem"></span></h2>
+        <p class="muted">every order placed on your shop shows up here.</p>
+        <div class="items" id="orderList"><p class="muted">loading…</p></div>
+      </section>
+
+      <section class="panel">
+        <h2>email list <span id="signupCount" class="muted" style="font-size:.9rem"></span></h2>
+        <div class="items" id="signupList"><p class="muted">loading…</p></div>
       </section>
     </div>
   </div>

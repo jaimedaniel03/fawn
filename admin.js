@@ -32,6 +32,8 @@ async function refreshAuth() {
   }
   show("dashView");
   loadItems();
+  loadOrders();
+  loadSignups();
 }
 
 $("#toggleMode").addEventListener("click", () => {
@@ -122,17 +124,22 @@ $("#itemForm").addEventListener("submit", async (e) => {
   try {
     const size = $("#iSize").value.trim();
     const condition = $("#iCondition").value.trim();
+    const brand = $("#iBrand").value.trim();
+    const category = $("#iCategory").value.trim();
     const file = $("#iPhoto").files[0];
     let image_url = "";
     if (file) image_url = await uploadPhoto(file);
     const { error } = await c.from("products").insert({
       title: $("#iTitle").value.trim(),
-      size, condition,
-      blurb: [size, condition].filter(Boolean).join(" · "),
+      size, condition, brand, category,
+      blurb: [brand, size, condition].filter(Boolean).join(" · "),
+      description: $("#iDesc").value.trim(),
       price: Number($("#iPrice").value) || 0,
       resale: Number($("#iResale").value) || 0,
       flag: $("#iFlag").value,
       sold: $("#iSold").checked,
+      hidden: $("#iHidden").checked,
+      pay_link: $("#iPayLink").value.trim(),
       image_url,
     });
     if (error) throw error;
@@ -160,6 +167,51 @@ async function loadItems() {
   list.innerHTML = data.map(itemRow).join("");
 }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ---------- orders ---------- */
+async function loadOrders() {
+  const list = $("#orderList");
+  const { data, error } = await c.from("orders").select("*").order("created_at", { ascending: false });
+  if (error) { list.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
+  $("#orderCount").textContent = data.length ? `(${data.length})` : "";
+  if (!data.length) { list.innerHTML = '<p class="muted">no orders yet.</p>'; return; }
+  list.innerHTML = data.map(orderRow).join("");
+}
+function orderRow(o) {
+  const when = new Date(o.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const items = Array.isArray(o.items) ? o.items.map(i => esc(i.title || i.t || "item")).join(", ") : "";
+  const ship = o.delivery === "ship" ? `ship → ${esc(o.address || "")}` : "local pickup";
+  return `<div class="item" style="align-items:flex-start">
+    <div class="item-info">
+      <h4>${esc(o.code || "order")} · $${Math.round(o.total || 0)}</h4>
+      <div class="meta">${esc(o.name || "")} · ${esc(o.email || "")}</div>
+      <div class="meta">${items}</div>
+      <div class="meta">${ship} · paid via ${esc(o.payment || "?")} · ${when}</div>
+    </div>
+    <div class="item-actions">
+      <button class="pill ${o.status === "done" ? "sold" : ""}" data-order-done="${o.id}" data-cur="${o.status === "done" ? 1 : 0}">${o.status === "done" ? "done ✓" : "mark done"}</button>
+    </div>
+  </div>`;
+}
+$("#orderList").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-order-done]");
+  if (!b) return;
+  const next = b.dataset.cur === "1" ? "new" : "done";
+  b.disabled = true;
+  const { error } = await c.from("orders").update({ status: next }).eq("id", b.dataset.orderDone);
+  if (error) alert(error.message);
+  loadOrders();
+});
+
+/* ---------- signups ---------- */
+async function loadSignups() {
+  const list = $("#signupList");
+  const { data, error } = await c.from("signups").select("*").order("created_at", { ascending: false });
+  if (error) { list.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
+  $("#signupCount").textContent = data.length ? `(${data.length})` : "";
+  if (!data.length) { list.innerHTML = '<p class="muted">no signups yet.</p>'; return; }
+  list.innerHTML = `<p class="muted" style="word-break:break-word">${data.map(s => esc(s.email)).join(", ")}</p>`;
+}
 function itemRow(r) {
   const thumb = r.image_url
     ? `<img class="item-thumb" src="${esc(r.image_url)}" alt="" />`
@@ -169,7 +221,7 @@ function itemRow(r) {
     ${thumb}
     <div class="item-info">
       <h4>${esc(r.title)}</h4>
-      <div class="meta">${meta}${r.flag ? " · " + esc(r.flag) : ""}</div>
+      <div class="meta">${meta}${r.flag ? " · " + esc(r.flag) : ""}${r.hidden ? ' · <span style="color:#855a0f">draft</span>' : ""}${r.pay_link ? " · 💳" : ""}</div>
       <div class="price">$${Math.round(r.price)}${r.resale ? ` <s style="color:var(--ink-soft)">$${Math.round(r.resale)}</s>` : ""}</div>
     </div>
     <div class="item-actions">

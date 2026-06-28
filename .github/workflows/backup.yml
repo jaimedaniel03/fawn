@@ -1,41 +1,49 @@
 name: weekly-backup
-# Dumps the public schema (your products) weekly and stores it as a downloadable
-# artifact. Only the `public` schema is dumped, so auth data (emails, password
-# hashes) is never included.
-#
-# ⚠️ REQUIRES one secret you add yourself:
-#   GitHub repo → Settings → Secrets and variables → Actions → New secret
-#   Name:  SUPABASE_DB_URL
-#   Value: the "Connection string" (URI) from Supabase →
-#          Project Settings → Database → Connection string (use the pooler/Session URI,
-#          and put your DB password in it). Without this secret the job will fail.
+# Backs up the shop weekly to a downloadable 90-day artifact.
+#  • Always: products catalog as JSON (works with the keys already configured).
+#  • Bonus:  full public-schema dump (incl. orders + signups) — only if you add a
+#    SUPABASE_DB_URL secret (Supabase → Project Settings → Database → Connection
+#    string, with your DB password). Without it, the products JSON still runs.
 on:
   schedule:
     - cron: '0 8 * * 0'      # Sundays 08:00 UTC
   workflow_dispatch:
 
 jobs:
-  dump:
+  backup:
     runs-on: ubuntu-latest
     steps:
-      - name: install postgresql-client 17 (matches Supabase)
+      - name: export products (public catalog) via REST
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ secrets.SUPABASE_ANON }}
         run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
-      - name: dump public schema
+          curl -sf "$SUPABASE_URL/rest/v1/products?select=*" \
+            -H "apikey: $SUPABASE_ANON" -H "Authorization: Bearer $SUPABASE_ANON" \
+            -o "products-$(date +%F).json"
+          echo "products backed up: $(wc -c < products-*.json) bytes"
+
+      - name: full schema dump (orders + signups) — only if SUPABASE_DB_URL is set
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then echo "SUPABASE_DB_URL secret not set — see this file's header."; exit 1; fi
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "SUPABASE_DB_URL not set — skipping full dump. Add it to also back up orders + signups."
+            exit 0
+          fi
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17
           /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
-            --schema=public --no-owner --no-privileges \
-            -f "fawn-backup-$(date +%F).sql"
-          echo "dump size: $(wc -c < fawn-backup-*.sql) bytes"
-      - name: upload backup artifact
+            --schema=public --no-owner --no-privileges -f "full-$(date +%F).sql"
+          echo "full dump: $(wc -c < full-*.sql) bytes"
+
+      - name: upload backups
         uses: actions/upload-artifact@v4
         with:
           name: fawn-backup-${{ github.run_id }}
-          path: fawn-backup-*.sql
+          path: |
+            products-*.json
+            full-*.sql
           retention-days: 90
+          if-no-files-found: warn
