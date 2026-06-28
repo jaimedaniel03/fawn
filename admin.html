@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FAWN — owner dashboard</title>
+  <title>Jessica Dashboard — FAWN</title>
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     base-uri 'self';
@@ -16,6 +16,7 @@
     form-action 'self';
   " />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="robots" content="noindex" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -54,6 +55,8 @@
     .pill.del{color:#a8341f}
     .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--pink-200);border-top-color:var(--rose);border-radius:50%;animation:adminspin .7s linear infinite;vertical-align:-3px;margin-right:.4rem}
     @keyframes adminspin{to{transform:rotate(360deg)}}
+    .pin-panel{max-width:380px;margin:8vh auto 0;text-align:center}
+    .pin-input{font-size:2rem;text-align:center;letter-spacing:.9rem;font-family:var(--serif);padding-left:.9rem}
     @media (max-width:480px){.row2{grid-template-columns:1fr}}
   </style>
 </head>
@@ -62,39 +65,32 @@
     <div class="admin-top">
       <div>
         <span class="brand-word">fawn</span>
-        <span class="hand">owner dashboard 🦌</span>
+        <span class="hand">Jessica Dashboard 🦌</span>
       </div>
-      <button class="btn btn-ghost" id="signOutBtn" hidden>sign out</button>
+      <button class="btn btn-ghost" id="lockBtn" hidden>lock 🔒</button>
     </div>
 
-    <!-- Login -->
-    <section class="panel" id="authView" hidden>
-      <h2 id="authTitle">welcome back, jess</h2>
-      <p class="muted" id="authSub">sign in to manage your shop.</p>
-      <form id="authForm">
-        <div class="field"><label>email</label><input type="email" id="email" autocomplete="username" value="jessicapotterrr@gmail.com" required /></div>
-        <div class="field"><label>password</label><input type="password" id="password" autocomplete="current-password" required /></div>
-        <button class="btn btn-primary btn-block" type="submit" id="authBtn">sign in</button>
+    <!-- PIN screen -->
+    <section class="panel pin-panel" id="pinView" hidden>
+      <h2>Jessica Dashboard</h2>
+      <p class="muted">enter your 4-digit PIN to unlock.</p>
+      <form id="pinForm">
+        <div class="field">
+          <label class="visually-hidden" for="pin">PIN</label>
+          <input id="pin" class="pin-input" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\d{4}" placeholder="••••" required />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="unlockBtn">Unlock Dashboard</button>
       </form>
-      <div id="authMsg"></div>
-      <p style="margin-top:1rem;font-size:.9rem;color:var(--ink-soft)">
-        <span id="toggleHint">first time?</span>
-        <button class="link-btn" id="toggleMode">create your account</button>
-      </p>
+      <div id="pinMsg"></div>
     </section>
 
-    <!-- Not the owner -->
-    <section class="panel" id="notOwnerView" hidden>
-      <h2>hmm…</h2>
-      <p class="muted">you're signed in as <strong id="whoEmail"></strong>, but only the shop owner can manage items.</p>
-    </section>
-
-    <!-- Dashboard -->
+    <!-- Dashboard (hidden until PIN session verified) -->
     <div id="dashView" hidden>
       <section class="panel">
-        <h2>add an item</h2>
+        <h2 id="addTitle">add an item</h2>
         <p class="muted">a few details + a photo. it goes live instantly.</p>
         <form id="itemForm">
+          <input type="hidden" id="iEditId" />
           <div class="field"><label>title</label><input id="iTitle" placeholder="washed waffle henley" required /></div>
           <div class="row2">
             <div class="field"><label>size</label><input id="iSize" placeholder="M" /></div>
@@ -120,6 +116,7 @@
           <div class="checkrow"><input type="checkbox" id="iSold" /><label for="iSold" style="text-transform:none;font-weight:500;color:var(--ink)">mark as sold</label></div>
           <div class="checkrow"><input type="checkbox" id="iHidden" /><label for="iHidden" style="text-transform:none;font-weight:500;color:var(--ink)">hide (draft — not shown in shop)</label></div>
           <button class="btn btn-primary btn-block" type="submit" id="saveBtn">add to shop ✨</button>
+          <button class="btn btn-ghost btn-block" type="button" id="cancelEdit" hidden style="margin-top:.5rem">cancel edit</button>
         </form>
         <div id="itemMsg"></div>
       </section>
@@ -138,6 +135,20 @@
       <section class="panel">
         <h2>email list <span id="signupCount" class="muted" style="font-size:.9rem"></span></h2>
         <div class="items" id="signupList"><p class="muted">loading…</p></div>
+      </section>
+
+      <section class="panel">
+        <h2>settings</h2>
+        <form id="pinChangeForm">
+          <div class="field"><label>change your PIN (4 digits)</label><input id="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\d{4}" placeholder="new 4-digit PIN" /></div>
+          <button class="btn btn-ghost" type="submit">update PIN</button>
+        </form>
+        <div id="pinChangeMsg"></div>
+        <p class="muted" style="margin-top:1.2rem;line-height:1.6">
+          🔒 Your login is verified on the server with rate limiting — the PIN is never stored in this page.<br/>
+          💳 Full automatic Stripe Checkout isn't connected yet — your per-item "buy now" Payment Links work today.<br/>
+          💾 Backups run weekly automatically.
+        </p>
       </section>
     </div>
   </div>

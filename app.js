@@ -396,7 +396,18 @@ function saveOrderToCloud(order){
     code: order.code, name: order.name, email: order.email, address: order.address,
     delivery: order.delivery, payment: order.payment, items: order.items,
     subtotal: order.subtotal, shipping: order.shipping, total: order.total,
-  }).then(() => {}, (e) => console.warn('order cloud-save failed:', e?.message));
+  }).then(() => notifyOrder(order.code), (e) => console.warn('order cloud-save failed:', e?.message));
+}
+
+// Fire-and-forget email ping. No-ops on the server until Resend is connected, so this
+// never blocks or fails the customer's checkout.
+function notifyOrder(code){
+  const cfg = window.FAWN_SUPABASE;
+  if(!cfg || !code) return;
+  fetch(`${cfg.url}/functions/v1/on-new-order`, {
+    method: 'POST', headers: { apikey: cfg.key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  }).then(() => {}, () => {});
 }
 
 function confirmationHTML(order){

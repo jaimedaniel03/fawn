@@ -1,185 +1,214 @@
-/* FAWN owner dashboard — login + manage inventory via Supabase. */
+/* FAWN admin — PIN login + all data through session-gated Edge Functions.
+   No PIN, password, hash, or service key lives in this file. The PIN is verified
+   server-side; this page only ever holds a short-lived session token. */
 const cfg = window.FAWN_SUPABASE;
-const c = window.fawnClient;
-const $ = (s) => document.querySelector(s);
+const $ = (id) => document.getElementById(id);
+const FN = (n) => `${cfg.url}/functions/v1/${n}`;
+const TOKEN_KEY = "fawn_admin_token";
+let autoLockTimer = null;
+let products = [];
 
-let mode = "signin"; // or "signup"
+async function callFn(name, body) {
+  const res = await fetch(FN(name), {
+    method: "POST",
+    headers: { apikey: cfg.key, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (_) { /* ignore */ }
+  return { ok: res.ok, status: res.status, data };
+}
+const getToken = () => sessionStorage.getItem(TOKEN_KEY) || "";
+const setToken = (t) => sessionStorage.setItem(TOKEN_KEY, t);
+const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+function msg(el, text, kind) { el.innerHTML = text ? `<p class="msg ${kind || ""}">${text}</p>` : ""; }
 
 function show(view) {
-  ["authView", "notOwnerView", "dashView"].forEach((v) => {
-    $("#" + v).hidden = v !== view;
-  });
-  $("#signOutBtn").hidden = view === "authView";
-}
-function msg(el, text, type) {
-  el.innerHTML = text ? `<div class="msg ${type}">${text}</div>` : "";
+  $("pinView").hidden = view !== "pin";
+  $("dashView").hidden = view !== "dash";
+  $("lockBtn").hidden = view !== "dash";
 }
 
-if (!c) {
-  document.querySelector(".admin").innerHTML =
-    '<div class="panel"><h2>Couldn\'t connect</h2><p class="muted">The Supabase client failed to load. Check your connection and refresh.</p></div>';
-}
-
-/* ---------- auth ---------- */
-async function refreshAuth() {
-  const { data: { session } } = await c.auth.getSession();
-  const user = session?.user || null;
-  if (!user) { show("authView"); return; }
-  if ((user.email || "").toLowerCase() !== cfg.ownerEmail.toLowerCase()) {
-    $("#whoEmail").textContent = user.email;
-    show("notOwnerView");
-    return;
+/* ---- session lifecycle ---- */
+async function boot() {
+  const t = getToken();
+  if (t) {
+    const r = await callFn("admin-api", { action: "session", token: t });
+    if (r.ok && r.data.valid) { unlock(r.data.expires_at); return; }
+    clearToken();
   }
-  show("dashView");
-  loadItems();
-  loadOrders();
-  loadSignups();
+  show("pin");
+  $("pin").focus();
+}
+function scheduleAutoLock(expiresAt) {
+  if (autoLockTimer) clearTimeout(autoLockTimer);
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms > 0) autoLockTimer = setTimeout(() => lock("your session expired — please unlock again."), ms);
+}
+function unlock(expiresAt) {
+  show("dash");
+  scheduleAutoLock(expiresAt);
+  loadItems(); loadOrders(); loadSignups();
+}
+function lock(note) {
+  clearToken();
+  if (autoLockTimer) clearTimeout(autoLockTimer);
+  show("pin");
+  msg($("pinMsg"), note || "", note ? "info" : "");
+  $("pin").value = "";
 }
 
-$("#toggleMode").addEventListener("click", () => {
-  mode = mode === "signin" ? "signup" : "signin";
-  const signup = mode === "signup";
-  $("#authTitle").textContent = signup ? "create your account" : "welcome back, jess";
-  $("#authSub").textContent = signup
-    ? "set the password you'll use to manage your shop."
-    : "sign in to manage your shop.";
-  $("#authBtn").textContent = signup ? "create account" : "sign in";
-  $("#password").autocomplete = signup ? "new-password" : "current-password";
-  $("#toggleHint").textContent = signup ? "already set up?" : "first time?";
-  $("#toggleMode").textContent = signup ? "sign in" : "create your account";
-  msg($("#authMsg"), "", "");
-});
-
-$("#authForm").addEventListener("submit", async (e) => {
+/* ---- PIN unlock ---- */
+$("pinForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = $("#email").value.trim();
-  const password = $("#password").value;
-  const btn = $("#authBtn");
-  btn.disabled = true;
-  msg($("#authMsg"), '<span class="spin"></span>working…', "info");
-  try {
-    if (mode === "signup") {
-      const { data, error } = await c.auth.signUp({ email, password });
-      if (error) throw error;
-      if (data.session) {
-        msg($("#authMsg"), "you're in!", "ok");
-      } else {
-        msg($("#authMsg"), "account created — check your email to confirm, then sign in. (check spam too)", "info");
-        mode = "signin";
-      }
-    } else {
-      const { error } = await c.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    }
-  } catch (err) {
-    msg($("#authMsg"), err.message || "Something went wrong.", "err");
-  } finally {
-    btn.disabled = false;
+  const pin = $("pin").value.trim();
+  msg($("pinMsg"), `<span class="spin"></span>verifying…`, "info");
+  $("unlockBtn").disabled = true;
+  const r = await callFn("verify-admin-pin", { pin });
+  $("unlockBtn").disabled = false;
+  if (r.ok && r.data.token) {
+    setToken(r.data.token);
+    msg($("pinMsg"), "", "");
+    unlock(r.data.expires_at);
+  } else if (r.status === 429) {
+    msg($("pinMsg"), "Too many attempts. Try again later.", "err");
+    $("pin").value = "";
+  } else {
+    msg($("pinMsg"), "Invalid PIN", "err");
+    $("pin").value = ""; $("pin").focus();
   }
 });
 
-$("#signOutBtn").addEventListener("click", async () => {
-  await c.auth.signOut();
+$("lockBtn").addEventListener("click", () => {
+  const t = getToken();
+  if (t) callFn("admin-api", { action: "logout", token: t });
+  lock();
 });
 
-if (c) c.auth.onAuthStateChange(() => refreshAuth());
+/* admin-api call that auto-locks on an expired/invalid session */
+async function api(action, extra) {
+  const r = await callFn("admin-api", { action, token: getToken(), ...(extra || {}) });
+  if (r.status === 401) { lock("your session expired — please unlock again."); throw new Error("session"); }
+  return r;
+}
 
-/* ---------- photos ---------- */
+/* ---- photo downscale → base64 (no data: prefix) ---- */
 function downscale(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      let { width, height } = img;
-      const MAX = 1100;
-      if (Math.max(width, height) > MAX) {
-        const r = MAX / Math.max(width, height);
-        width = Math.round(width * r);
-        height = Math.round(height * r);
-      }
-      const cv = document.createElement("canvas");
-      cv.width = width; cv.height = height;
-      cv.getContext("2d").drawImage(img, 0, 0, width, height);
-      cv.toBlob((b) => (b ? resolve(b) : reject(new Error("image error"))), "image/jpeg", 0.85);
+      let { width, height } = img; const MAX = 1024;
+      if (Math.max(width, height) > MAX) { const r = MAX / Math.max(width, height); width = Math.round(width * r); height = Math.round(height * r); }
+      const c = document.createElement("canvas"); c.width = width; c.height = height;
+      c.getContext("2d").drawImage(img, 0, 0, width, height);
+      resolve({ b64: c.toDataURL("image/jpeg", 0.85).split(",")[1], type: "image/jpeg" });
     };
-    img.onerror = () => reject(new Error("couldn't read that image"));
-    img.src = url;
+    img.onerror = reject; img.src = url;
   });
 }
-async function uploadPhoto(file) {
-  const blob = await downscale(file);
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-  const { error } = await c.storage.from(cfg.bucket).upload(path, blob, { contentType: "image/jpeg" });
-  if (error) throw error;
-  return c.storage.from(cfg.bucket).getPublicUrl(path).data.publicUrl;
-}
 
-/* ---------- add item ---------- */
-$("#itemForm").addEventListener("submit", async (e) => {
+/* ---- add / edit item ---- */
+function resetForm() {
+  $("itemForm").reset(); $("iEditId").value = "";
+  $("cancelEdit").hidden = true; $("saveBtn").textContent = "add to shop ✨"; $("addTitle").textContent = "add an item";
+}
+$("cancelEdit").addEventListener("click", resetForm);
+
+$("itemForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn = $("#saveBtn");
-  btn.disabled = true;
-  msg($("#itemMsg"), '<span class="spin"></span>saving…', "info");
+  const btn = $("saveBtn"); btn.disabled = true;
+  msg($("itemMsg"), `<span class="spin"></span>saving…`, "info");
   try {
-    const size = $("#iSize").value.trim();
-    const condition = $("#iCondition").value.trim();
-    const brand = $("#iBrand").value.trim();
-    const category = $("#iCategory").value.trim();
-    const file = $("#iPhoto").files[0];
-    let image_url = "";
-    if (file) image_url = await uploadPhoto(file);
-    const { error } = await c.from("products").insert({
-      title: $("#iTitle").value.trim(),
-      size, condition, brand, category,
+    const brand = $("iBrand").value.trim(), size = $("iSize").value.trim(), condition = $("iCondition").value.trim();
+    const product = {
+      title: $("iTitle").value.trim(), size, condition, brand, category: $("iCategory").value.trim(),
       blurb: [brand, size, condition].filter(Boolean).join(" · "),
-      description: $("#iDesc").value.trim(),
-      price: Number($("#iPrice").value) || 0,
-      resale: Number($("#iResale").value) || 0,
-      flag: $("#iFlag").value,
-      sold: $("#iSold").checked,
-      hidden: $("#iHidden").checked,
-      pay_link: $("#iPayLink").value.trim(),
-      image_url,
-    });
-    if (error) throw error;
-    $("#itemForm").reset();
-    msg($("#itemMsg"), "added to your shop 🌿", "ok");
+      description: $("iDesc").value.trim(),
+      price: Number($("iPrice").value) || 0, resale: Number($("iResale").value) || 0,
+      flag: $("iFlag").value, sold: $("iSold").checked, hidden: $("iHidden").checked,
+      pay_link: $("iPayLink").value.trim(),
+    };
+    let img = {};
+    const file = $("iPhoto").files[0];
+    if (file) { const d = await downscale(file); img = { image_b64: d.b64, image_type: d.type }; }
+    const editId = $("iEditId").value;
+    const r = await api(editId ? "update_product" : "create_product", { product, id: editId || undefined, ...img });
+    if (!r.ok) throw new Error(r.data.error || "save failed");
+    resetForm();
+    msg($("itemMsg"), editId ? "saved ✓" : "added to your shop 🌿", "ok");
     loadItems();
   } catch (err) {
-    msg($("#itemMsg"), err.message || "Couldn't save.", "err");
-  } finally {
-    btn.disabled = false;
-  }
+    if (err.message !== "session") msg($("itemMsg"), err.message, "err");
+  } finally { btn.disabled = false; }
 });
 
-/* ---------- list / edit / delete ---------- */
+/* ---- items ---- */
 async function loadItems() {
-  const list = $("#itemList");
-  list.innerHTML = '<p class="muted">loading…</p>';
-  const { data, error } = await c
-    .from("products").select("*")
-    .order("sold", { ascending: true })
-    .order("created_at", { ascending: false });
-  if (error) { list.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
-  $("#itemCount").textContent = data.length ? `(${data.length})` : "";
-  if (!data.length) { list.innerHTML = '<p class="muted">no items yet — add your first above.</p>'; return; }
-  list.innerHTML = data.map(itemRow).join("");
+  const list = $("itemList"); list.innerHTML = '<p class="muted">loading…</p>';
+  try {
+    const r = await api("list_products");
+    products = r.data.products || [];
+    $("itemCount").textContent = products.length ? `(${products.length})` : "";
+    list.innerHTML = products.length ? products.map(itemRow).join("") : '<p class="muted">no items yet — add your first above.</p>';
+  } catch (e) { if (e.message !== "session") list.innerHTML = '<p class="msg err">couldn\'t load items.</p>'; }
 }
-function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function itemRow(r) {
+  const thumb = r.image_url ? `<img class="item-thumb" src="${esc(r.image_url)}" alt="" />` : `<div class="item-ph">FAWN</div>`;
+  const meta = esc(r.blurb || [r.brand, r.size, r.condition].filter(Boolean).join(" · "));
+  return `<div class="item">
+    ${thumb}
+    <div class="item-info">
+      <h4>${esc(r.title)}</h4>
+      <div class="meta">${meta}${r.flag ? " · " + esc(r.flag) : ""}${r.hidden ? ' · <span style="color:#855a0f">draft</span>' : ""}${r.pay_link ? " · 💳" : ""}</div>
+      <div class="price">$${Math.round(r.price)}${r.resale ? ` <s style="color:var(--ink-soft)">$${Math.round(r.resale)}</s>` : ""}</div>
+    </div>
+    <div class="item-actions">
+      <button class="pill" data-edit="${r.id}">edit</button>
+      <button class="pill ${r.sold ? "sold" : ""}" data-sold="${r.id}">${r.sold ? "sold ✓" : "mark sold"}</button>
+      <button class="pill del" data-del="${r.id}">delete</button>
+    </div>
+  </div>`;
+}
+$("itemList").addEventListener("click", async (e) => {
+  const ed = e.target.closest("[data-edit]"), sd = e.target.closest("[data-sold]"), dl = e.target.closest("[data-del]");
+  if (ed) { startEdit(products.find((p) => p.id === ed.dataset.edit)); return; }
+  if (sd) {
+    const p = products.find((x) => x.id === sd.dataset.sold); if (!p) return;
+    sd.disabled = true;
+    try { await api("update_product", { id: p.id, product: { ...p, sold: !p.sold } }); loadItems(); } catch (_) { /* handled */ }
+    return;
+  }
+  if (dl) {
+    if (!confirm("Delete this item for good?")) return;
+    try { await api("delete_product", { id: dl.dataset.del }); loadItems(); } catch (_) { /* handled */ }
+  }
+});
+function startEdit(p) {
+  if (!p) return;
+  $("iEditId").value = p.id; $("iTitle").value = p.title || ""; $("iSize").value = p.size || ""; $("iCondition").value = p.condition || "";
+  $("iBrand").value = p.brand || ""; $("iCategory").value = p.category || ""; $("iPrice").value = p.price || ""; $("iResale").value = p.resale || "";
+  $("iFlag").value = p.flag || ""; $("iDesc").value = p.description || ""; $("iPayLink").value = p.pay_link || "";
+  $("iSold").checked = !!p.sold; $("iHidden").checked = !!p.hidden;
+  $("cancelEdit").hidden = false; $("saveBtn").textContent = "save changes"; $("addTitle").textContent = "edit item";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-/* ---------- orders ---------- */
+/* ---- orders ---- */
 async function loadOrders() {
-  const list = $("#orderList");
-  const { data, error } = await c.from("orders").select("*").order("created_at", { ascending: false });
-  if (error) { list.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
-  $("#orderCount").textContent = data.length ? `(${data.length})` : "";
-  if (!data.length) { list.innerHTML = '<p class="muted">no orders yet.</p>'; return; }
-  list.innerHTML = data.map(orderRow).join("");
+  const list = $("orderList");
+  try {
+    const r = await api("list_orders");
+    const data = r.data.orders || [];
+    $("orderCount").textContent = data.length ? `(${data.length})` : "";
+    list.innerHTML = data.length ? data.map(orderRow).join("") : '<p class="muted">no orders yet.</p>';
+  } catch (e) { if (e.message !== "session") list.innerHTML = '<p class="msg err">couldn\'t load orders.</p>'; }
 }
 function orderRow(o) {
   const when = new Date(o.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  const items = Array.isArray(o.items) ? o.items.map(i => esc(i.title || i.t || "item")).join(", ") : "";
+  const items = Array.isArray(o.items) ? o.items.map((i) => esc(i.title || i.t || "item")).join(", ") : "";
   const ship = o.delivery === "ship" ? `ship → ${esc(o.address || "")}` : "local pickup";
   return `<div class="item" style="align-items:flex-start">
     <div class="item-info">
@@ -193,69 +222,34 @@ function orderRow(o) {
     </div>
   </div>`;
 }
-$("#orderList").addEventListener("click", async (e) => {
+$("orderList").addEventListener("click", async (e) => {
   const b = e.target.closest("[data-order-done]");
   if (!b) return;
-  const next = b.dataset.cur === "1" ? "new" : "done";
   b.disabled = true;
-  const { error } = await c.from("orders").update({ status: next }).eq("id", b.dataset.orderDone);
-  if (error) alert(error.message);
-  loadOrders();
+  try { await api("mark_order", { id: b.dataset.orderDone, status: b.dataset.cur === "1" ? "new" : "done" }); loadOrders(); } catch (_) { /* handled */ }
 });
 
-/* ---------- signups ---------- */
+/* ---- signups ---- */
 async function loadSignups() {
-  const list = $("#signupList");
-  const { data, error } = await c.from("signups").select("*").order("created_at", { ascending: false });
-  if (error) { list.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
-  $("#signupCount").textContent = data.length ? `(${data.length})` : "";
-  if (!data.length) { list.innerHTML = '<p class="muted">no signups yet.</p>'; return; }
-  list.innerHTML = `<p class="muted" style="word-break:break-word">${data.map(s => esc(s.email)).join(", ")}</p>`;
-}
-function itemRow(r) {
-  const thumb = r.image_url
-    ? `<img class="item-thumb" src="${esc(r.image_url)}" alt="" />`
-    : `<div class="item-ph">FAWN</div>`;
-  const meta = esc(r.blurb || [r.size, r.condition].filter(Boolean).join(" · "));
-  return `<div class="item" data-id="${r.id}">
-    ${thumb}
-    <div class="item-info">
-      <h4>${esc(r.title)}</h4>
-      <div class="meta">${meta}${r.flag ? " · " + esc(r.flag) : ""}${r.hidden ? ' · <span style="color:#855a0f">draft</span>' : ""}${r.pay_link ? " · 💳" : ""}</div>
-      <div class="price">$${Math.round(r.price)}${r.resale ? ` <s style="color:var(--ink-soft)">$${Math.round(r.resale)}</s>` : ""}</div>
-    </div>
-    <div class="item-actions">
-      <button class="pill ${r.sold ? "sold" : ""}" data-sold="${r.id}" data-cur="${r.sold ? 1 : 0}">${r.sold ? "sold ✓" : "mark sold"}</button>
-      <button class="pill del" data-del="${r.id}" data-img="${esc(r.image_url || '')}">delete</button>
-    </div>
-  </div>`;
+  const list = $("signupList");
+  try {
+    const r = await api("list_signups");
+    const data = r.data.signups || [];
+    $("signupCount").textContent = data.length ? `(${data.length})` : "";
+    list.innerHTML = data.length ? `<p class="muted" style="word-break:break-word">${data.map((s) => esc(s.email)).join(", ")}</p>` : '<p class="muted">no signups yet.</p>';
+  } catch (e) { if (e.message !== "session") list.innerHTML = '<p class="msg err">couldn\'t load signups.</p>'; }
 }
 
-$("#itemList").addEventListener("click", async (e) => {
-  const soldBtn = e.target.closest("[data-sold]");
-  const delBtn = e.target.closest("[data-del]");
-  if (soldBtn) {
-    const id = soldBtn.dataset.sold;
-    const next = soldBtn.dataset.cur === "1" ? false : true;
-    soldBtn.disabled = true;
-    const { error } = await c.from("products").update({ sold: next }).eq("id", id);
-    if (error) alert(error.message);
-    loadItems();
-  }
-  if (delBtn) {
-    if (!confirm("Delete this item for good?")) return;
-    // also remove the photo from storage so it doesn't orphan + fill the bucket
-    const img = delBtn.dataset.img || "";
-    const marker = `/${cfg.bucket}/`;
-    const at = img.indexOf(marker);
-    if (at !== -1) {
-      try { await c.storage.from(cfg.bucket).remove([img.slice(at + marker.length)]); } catch (_) {}
-    }
-    const { error } = await c.from("products").delete().eq("id", delBtn.dataset.del);
-    if (error) alert(error.message);
-    loadItems();
-  }
+/* ---- change PIN ---- */
+$("pinChangeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const np = $("newPin").value.trim();
+  if (!/^\d{4}$/.test(np)) { msg($("pinChangeMsg"), "PIN must be exactly 4 digits.", "err"); return; }
+  try {
+    const r = await api("change_pin", { new_pin: np });
+    if (r.ok) { msg($("pinChangeMsg"), "PIN updated ✓ — other devices were signed out.", "ok"); $("newPin").value = ""; }
+    else msg($("pinChangeMsg"), r.data.error || "couldn't update PIN.", "err");
+  } catch (_) { /* handled */ }
 });
 
-/* ---------- go ---------- */
-if (c) refreshAuth();
+boot();
