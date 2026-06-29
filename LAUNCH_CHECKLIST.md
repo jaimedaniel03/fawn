@@ -18,7 +18,7 @@ Everything Jessica (and the developer) needs to run the shop. Live shop:
 
 ## 2. How to change the PIN
 
-**Easiest — from the dashboard:** unlock, scroll to **Settings → "change your PIN"**, type 4 new digits, **update PIN**. All other devices are signed out immediately.
+**Easiest — from the dashboard:** unlock, scroll to **Settings → "change your PIN"**, enter your **current** PIN and the **new** 4 digits, **update PIN**. (Requiring the current PIN means a stolen session can't silently change it.) All other devices are signed out immediately.
 
 **Or from a terminal (developer):**
 ```bash

@@ -28,6 +28,11 @@ Deno.serve(async (req) => {
   const FROM = Deno.env.get("ORDER_NOTIFY_FROM") || "FAWN <onboarding@resend.dev>";
   if (!RESEND) return json({ ok: true, sent: false, configured: false }); // not connected yet
 
+  // Atomically CLAIM this order before sending, so two concurrent calls (double-submit,
+  // retry) can't both email. Only the call that actually flips notified=false→true sends.
+  const claim = await db.from("orders").update({ notified: true }).eq("id", o.id).eq("notified", false).select("id");
+  if (!claim.data || claim.data.length === 0) return json({ ok: true, sent: false }); // already claimed
+
   const items = Array.isArray(o.items) ? o.items.map((i: any) => i.title || i.t || "item").join(", ") : "";
   const ship = o.delivery === "ship" ? `Ship to: ${o.address || ""}` : "Local pickup";
   const html = `
@@ -42,6 +47,7 @@ Deno.serve(async (req) => {
     headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: FROM, to: [TO], subject: `New order ${o.code} · $${Math.round(o.total || 0)}`, html }),
   });
-  if (r.ok) { await db.from("orders").update({ notified: true }).eq("id", o.id); return json({ ok: true, sent: true }); }
+  if (r.ok) return json({ ok: true, sent: true });
+  await db.from("orders").update({ notified: false }).eq("id", o.id); // release claim so a retry can re-send
   return json({ ok: true, sent: false, error: await r.text() });
 });

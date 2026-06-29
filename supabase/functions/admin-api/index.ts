@@ -22,6 +22,12 @@ async function pbkdf2Hex(pin: string, saltHex: string, iter: number) {
     { name: "PBKDF2", salt: hexToBytes(saltHex), iterations: iter, hash: "SHA-256" }, key, 256);
   return hex(new Uint8Array(bits));
 }
+function ctEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -128,14 +134,22 @@ Deno.serve(async (req) => {
 
       case "change_pin": {
         const newPin = String(body.new_pin ?? "");
-        if (!/^\d{4}$/.test(newPin)) return json({ error: "PIN must be 4 digits" }, 400);
+        const curPin = String(body.current_pin ?? "");
+        if (!/^\d{4}$/.test(newPin)) return json({ error: "New PIN must be 4 digits" }, 400);
+        // Re-authenticate with the CURRENT pin (defense-in-depth: a leaked session
+        // token alone cannot silently change the PIN and lock Jessica out).
+        const { data: cfg } = await db.from("admin_config").select("pin_hash").eq("id", 1).single();
+        const parts = (cfg?.pin_hash ?? "").split("$");
+        let curOk = false;
+        if (parts.length === 4 && parts[0] === "pbkdf2") {
+          curOk = ctEqual(await pbkdf2Hex(curPin, parts[2], parseInt(parts[1], 10)), parts[3]);
+        }
+        if (!curOk) return json({ error: "Current PIN is incorrect" }, 401);
         const salt = new Uint8Array(16); crypto.getRandomValues(salt);
-        const calc = await pbkdf2Hex(newPin, hex(salt), 100000);
-        const value = `pbkdf2$100000$${hex(salt)}$${calc}`;
+        const value = `pbkdf2$100000$${hex(salt)}$${await pbkdf2Hex(newPin, hex(salt), 100000)}`;
         const { error } = await db.from("admin_config").update({ pin_hash: value, updated_at: new Date().toISOString() }).eq("id", 1);
         if (error) throw error;
-        // invalidate all other sessions on PIN change, keep current
-        await db.from("admin_sessions").delete().neq("id", sess.id);
+        await db.from("admin_sessions").delete().neq("id", sess.id); // sign out other devices
         return json({ ok: true });
       }
 

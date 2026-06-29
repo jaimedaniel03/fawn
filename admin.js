@@ -243,11 +243,12 @@ async function loadSignups() {
 /* ---- change PIN ---- */
 $("pinChangeForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const cp = $("curPin").value.trim();
   const np = $("newPin").value.trim();
-  if (!/^\d{4}$/.test(np)) { msg($("pinChangeMsg"), "PIN must be exactly 4 digits.", "err"); return; }
+  if (!/^\d{4}$/.test(cp) || !/^\d{4}$/.test(np)) { msg($("pinChangeMsg"), "Both PINs must be exactly 4 digits.", "err"); return; }
   try {
-    const r = await api("change_pin", { new_pin: np });
-    if (r.ok) { msg($("pinChangeMsg"), "PIN updated ✓ — other devices were signed out.", "ok"); $("newPin").value = ""; }
+    const r = await api("change_pin", { current_pin: cp, new_pin: np });
+    if (r.ok) { msg($("pinChangeMsg"), "PIN updated ✓ — other devices were signed out.", "ok"); $("curPin").value = ""; $("newPin").value = ""; }
     else msg($("pinChangeMsg"), r.data.error || "couldn't update PIN.", "err");
   } catch (_) { /* handled */ }
 });

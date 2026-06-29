@@ -140,7 +140,8 @@
       <section class="panel">
         <h2>settings</h2>
         <form id="pinChangeForm">
-          <div class="field"><label>change your PIN (4 digits)</label><input id="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\d{4}" placeholder="new 4-digit PIN" /></div>
+          <div class="field"><label>current PIN</label><input id="curPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\d{4}" placeholder="current 4-digit PIN" /></div>
+          <div class="field"><label>new PIN (4 digits)</label><input id="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\d{4}" placeholder="new 4-digit PIN" /></div>
           <button class="btn btn-ghost" type="submit">update PIN</button>
         </form>
         <div id="pinChangeMsg"></div>

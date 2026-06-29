@@ -31,8 +31,14 @@ function ctEqual(a: string, b: string) {
 }
 
 const SESSION_HOURS = 10;
-const MAX_15MIN = 5;
-const MAX_DAY = 20;
+// Per-IP limits are best-effort: the IP comes from x-forwarded-for, which a caller
+// can spoof. The GLOBAL ceiling below is the real guarantee — it counts every failed
+// attempt regardless of source, so rotating the header cannot reset it. This bounds an
+// online brute force of the 4-digit keyspace to ~GLOBAL_DAY guesses/day.
+const PERIP_15MIN = 5;
+const PERIP_DAY = 20;
+const GLOBAL_15MIN = 20;
+const GLOBAL_DAY = 100;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -47,19 +53,21 @@ Deno.serve(async (req) => {
   const ipHash = await sha256Hex("ip:" + ip + ":fawn-admin");
   const uaHash = await sha256Hex("ua:" + ua + ":fawn-admin");
 
-  // ----- rate limit -----
+  // ----- rate limit: per-IP (best-effort) + an unbypassable global ceiling -----
   const now = Date.now();
   const since15 = new Date(now - 15 * 60_000).toISOString();
   const since24 = new Date(now - 24 * 3600_000).toISOString();
-  const [{ count: c15 }, { count: cDay }] = await Promise.all([
-    db.from("admin_login_attempts").select("*", { count: "exact", head: true })
-      .eq("ip_hash", ipHash).eq("success", false).gte("created_at", since15),
-    db.from("admin_login_attempts").select("*", { count: "exact", head: true })
-      .eq("ip_hash", ipHash).eq("success", false).gte("created_at", since24),
+  const fails = () => db.from("admin_login_attempts").select("*", { count: "exact", head: true }).eq("success", false);
+  const [ip15, ipDay, all15, allDay] = await Promise.all([
+    fails().eq("ip_hash", ipHash).gte("created_at", since15),
+    fails().eq("ip_hash", ipHash).gte("created_at", since24),
+    fails().gte("created_at", since15),
+    fails().gte("created_at", since24),
   ]);
-  if ((c15 ?? 0) >= MAX_15MIN || (cDay ?? 0) >= MAX_DAY) {
-    return json({ error: "Too many attempts. Try again later." }, 429);
-  }
+  const limited =
+    (ip15.count ?? 0) >= PERIP_15MIN || (ipDay.count ?? 0) >= PERIP_DAY ||
+    (all15.count ?? 0) >= GLOBAL_15MIN || (allDay.count ?? 0) >= GLOBAL_DAY;
+  if (limited) return json({ error: "Too many attempts. Try again later." }, 429);
 
   // ----- input -----
   let pin = "";
