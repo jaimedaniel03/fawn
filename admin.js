@@ -9,14 +9,20 @@ let autoLockTimer = null;
 let products = [];
 
 async function callFn(name, body) {
-  const res = await fetch(FN(name), {
-    method: "POST",
-    headers: { apikey: cfg.key, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  let data = {};
-  try { data = await res.json(); } catch (_) { /* ignore */ }
-  return { ok: res.ok, status: res.status, data };
+  try {
+    const res = await fetch(FN(name), {
+      method: "POST",
+      headers: { apikey: cfg.key, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    let data = {};
+    try { data = await res.json(); } catch (_) { /* ignore */ }
+    return { ok: res.ok, status: res.status, data };
+  } catch (_) {
+    // Network failure / server unreachable (e.g. backend paused): never throw, so the
+    // page always reaches a usable state and shows a clear message instead of "Invalid PIN".
+    return { ok: false, status: 0, data: { error: "Can't reach the server. Check your connection and try again." } };
+  }
 }
 const getToken = () => sessionStorage.getItem(TOKEN_KEY) || "";
 const setToken = (t) => sessionStorage.setItem(TOKEN_KEY, t);
@@ -74,6 +80,8 @@ $("pinForm").addEventListener("submit", async (e) => {
   } else if (r.status === 429) {
     msg($("pinMsg"), "Too many attempts. Try again later.", "err");
     $("pin").value = "";
+  } else if (r.status === 0 || r.status >= 500) {
+    msg($("pinMsg"), r.data.error || "Can't reach the server right now. Try again in a moment.", "err");
   } else {
     msg($("pinMsg"), "Invalid PIN", "err");
     $("pin").value = ""; $("pin").focus();

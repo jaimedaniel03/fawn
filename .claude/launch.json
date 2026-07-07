@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "fawn", "runtimeExecutable": "python3", "runtimeArgs": ["/tmp/fawn-serve.py"], "port": 4321 }
+  ]
+}
