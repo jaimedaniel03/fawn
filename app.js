@@ -28,6 +28,8 @@ const SELLER = {
   appleCashPhone: '669-264-4830',
   contactEmail: 'jessicapotterrr@gmail.com',
   localShip: 6,        // flat local shipping; in-person pickup is free
+  depopUrl: 'https://depop.app.link/C9KkDIRhz4b',  // Jessica's live Depop shop (real checkout + Depop Protection)
+  depopHandle: '@alanna-durkee',
 };
 
 /* ----- 3. STATE --------------------------------------------------- */
@@ -81,7 +83,7 @@ function renderProducts(){
             ? `<button class="btn btn-ghost" data-remove="${p.id}">In bag ✓ — remove</button>`
             : `<button class="btn btn-primary" data-add="${p.id}">Add to bag</button>`}
         ${p.payLink && !p.sold ? `<a class="btn btn-ghost card-buy" href="${esc(p.payLink)}" target="_blank" rel="noopener">buy now ↗</a>` : ''}
-        ${p.depop && !p.sold ? `<a class="card-meta" href="${p.depop}" target="_blank" rel="noopener" data-depop style="text-align:center;text-decoration:underline;color:var(--rose-deep)">View on Depop ↗</a>` : ''}
+        ${!p.sold ? `<a class="card-depop" href="${esc(p.depop || SELLER.depopUrl)}" target="_blank" rel="noopener" data-depop>shop on Depop ↗</a>` : ''}
       </div>
     </article>`;
   }).join('');
