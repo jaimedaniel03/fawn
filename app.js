@@ -29,7 +29,7 @@ const SELLER = {
   contactEmail: 'jessicapotterrr@gmail.com',
   localShip: 6,        // flat local shipping; in-person pickup is free
   depopUrl: 'https://depop.app.link/C9KkDIRhz4b',  // Jessica's live Depop shop (real checkout + Depop Protection)
-  depopHandle: '@alanna-durkee',
+  depopHandle: '',   // set to Jessica's exact @username to show it in the copy
 };
 
 /* ----- 3. STATE --------------------------------------------------- */
